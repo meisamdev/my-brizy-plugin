@@ -27,3 +27,19 @@ function my_brizy_plugin_activate() {
 function my_brizy_plugin_deactivate() {
     flush_rewrite_rules();
 }
+
+// Add rewrite rules on init
+add_action( 'init', 'my_brizy_plugin_add_rewrite_rules' );
+
+/**
+ * Adds custom rewrite rules and tags.
+ */
+function my_brizy_plugin_add_rewrite_rules() {
+    // Add rewrite rules for head and body routes
+    add_rewrite_rule( '^brizy/head/([0-9]+)/?$', 'index.php?brizy_route=head&post_id=$matches[1]', 'top' );
+    add_rewrite_rule( '^brizy/body/([0-9]+)/?$', 'index.php?brizy_route=body&post_id=$matches[1]', 'top' );
+    
+    // Add query vars
+    add_rewrite_tag( '%brizy_route%', '([^&]+)' );
+    add_rewrite_tag( '%post_id%', '([0-9]+)' );
+}
