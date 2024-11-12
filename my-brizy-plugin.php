@@ -43,3 +43,40 @@ function my_brizy_plugin_add_rewrite_rules() {
     add_rewrite_tag( '%brizy_route%', '([^&]+)' );
     add_rewrite_tag( '%post_id%', '([0-9]+)' );
 }
+// Handle the custom routes
+add_action( 'template_redirect', 'my_brizy_plugin_template_redirect' );
+
+/**
+ * Intercepts requests to custom routes and outputs the required HTML content.
+ */
+function my_brizy_plugin_template_redirect() {
+    $route = get_query_var( 'brizy_route' );
+    $post_id = get_query_var( 'post_id' );
+    
+    if ( $route && $post_id ) {
+        // Ensure Brizy plugin is active
+        if ( ! class_exists( 'Brizy_Editor_Post' ) ) {
+            wp_die( 'Brizy plugin is not active.' );
+        }
+        
+        // Get the Brizy post
+        $post = Brizy_Editor_Post::get( $post_id );
+        $html = new Brizy_Editor_CompiledHtml( $post->get_compiled_html() );
+        
+        if ( $route == 'head' ) {
+            // Get the <head> content
+            $headHtml = apply_filters( 'brizy_content', $html->get_head(), Brizy_Editor_Project::get(), $post->getWpPost() );
+            // Output the HTML content
+            header( 'Content-Type: text/html' );
+            echo $headHtml;
+            exit;
+        } elseif ( $route == 'body' ) {
+            // Get the <body> content
+            $bodyHtml = apply_filters( 'brizy_content', $html->get_body(), Brizy_Editor_Project::get(), $post->getWpPost() );
+            // Output the HTML content
+            header( 'Content-Type: text/html' );
+            echo $bodyHtml;
+            exit;
+        }
+    }
+}
